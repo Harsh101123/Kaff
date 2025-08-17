@@ -15,10 +15,6 @@ type HeroProps = CollectionContentFragment & {
   top?: boolean;
   loading?: HTMLImageElement['loading'];
 };
-
-/**
- * Hero component that renders metafields attached to collection resources
- **/
 export function Hero({
   byline,
   cta,
@@ -31,6 +27,7 @@ export function Hero({
   top,
 }: HeroProps) {
   return (
+    
     <Link to={`/collections/${handle}`} prefetch="viewport">
       <section
         className={clsx(

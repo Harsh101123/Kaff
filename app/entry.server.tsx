@@ -1,8 +1,8 @@
-import type {AppLoadContext, EntryContext} from '@shopify/remix-oxygen';
-import {RemixServer} from '@remix-run/react';
+import type { AppLoadContext, EntryContext } from '@shopify/remix-oxygen';
+import { RemixServer } from '@remix-run/react';
 import isbot from 'isbot';
-import {renderToReadableStream} from 'react-dom/server';
-import {createContentSecurityPolicy} from '@shopify/hydrogen';
+import { renderToReadableStream } from 'react-dom/server';
+import { createContentSecurityPolicy } from '@shopify/hydrogen';
 
 export default async function handleRequest(
   request: Request,
@@ -11,19 +11,29 @@ export default async function handleRequest(
   remixContext: EntryContext,
   context: AppLoadContext,
 ) {
-  const {nonce, header, NonceProvider} = createContentSecurityPolicy({
+  const { nonce, header, NonceProvider } = createContentSecurityPolicy({
     shop: {
       checkoutDomain: context.env.PUBLIC_CHECKOUT_DOMAIN,
       storeDomain: context.env.PUBLIC_STORE_DOMAIN,
     },
-    scriptSrc: [
-      'self',
+    styleSrc: [
+      "'self'",
+      "'unsafe-inline'",
+      'https://use.typekit.net',
       'https://cdn.shopify.com',
-      'https://shopify.com',
-      'https://www.google-analytics.com',
-      'https://www.googletagmanager.com',
       ...(process.env.NODE_ENV !== 'production' ? ['http://localhost:*'] : []),
     ],
+    // **Yeh naya fontSrc block add karo**
+    fontSrc: [
+      "'self'",
+      'https://use.typekit.net',
+    ],
+    // Agar aapke pass scriptSrc directive hai, toh woh bhi iske baad aaegi
+    // Example:
+    // scriptSrc: [
+    //   "'self'",
+    //   'https://cdn.shopify.com',
+    // ],
   });
 
   const body = await renderToReadableStream(

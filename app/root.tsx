@@ -25,14 +25,15 @@ import {
 } from '@shopify/hydrogen';
 import invariant from 'tiny-invariant';
 
-import {PageLayout} from '~/components/PageLayout';
-import {GenericError} from '~/components/GenericError';
-import {NotFound} from '~/components/NotFound';
+import { PageLayout } from '~/components/PageLayout';
+import { GenericError } from '~/components/GenericError';
+import { NotFound } from '~/components/NotFound';
 import favicon from '~/assets/favicon.svg';
-import {seoPayload} from '~/lib/seo.server';
+import { seoPayload } from '~/lib/seo.server';
 import styles from '~/styles/app.css?url';
+import mainStyle from '~/styles/style.css?url';
 
-import {DEFAULT_LOCALE, parseMenu} from './lib/utils';
+import { DEFAULT_LOCALE, parseMenu } from './lib/utils';
 
 export type RootLoader = typeof loader;
 
@@ -74,7 +75,7 @@ export const links: LinksFunction = () => {
       rel: 'preconnect',
       href: 'https://shop.app',
     },
-    {rel: 'icon', type: 'image/svg+xml', href: favicon},
+    { rel: 'icon', type: 'image/svg+xml', href: favicon },
   ];
 };
 
@@ -95,15 +96,15 @@ export async function loader(args: LoaderFunctionArgs) {
  * Load data necessary for rendering content above the fold. This is the critical data
  * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
  */
-async function loadCriticalData({request, context}: LoaderFunctionArgs) {
+async function loadCriticalData({ request, context }: LoaderFunctionArgs) {
   const [layout] = await Promise.all([
     getLayoutData(context),
     // Add other queries here, so that they are loaded in parallel
   ]);
 
-  const seo = seoPayload.root({shop: layout.shop, url: request.url});
+  const seo = seoPayload.root({ shop: layout.shop, url: request.url });
 
-  const {storefront, env} = context;
+  const { storefront, env } = context;
 
   return {
     layout,
@@ -126,8 +127,8 @@ async function loadCriticalData({request, context}: LoaderFunctionArgs) {
  * fetched after the initial page load. If it's unavailable, the page should still 200.
  * Make sure to not throw any errors here, as it will cause the page to 500.
  */
-function loadDeferredData({context}: LoaderFunctionArgs) {
-  const {cart, customerAccount} = context;
+function loadDeferredData({ context }: LoaderFunctionArgs) {
+  const { cart, customerAccount } = context;
 
   return {
     isLoggedIn: customerAccount.isLoggedIn(),
@@ -135,11 +136,11 @@ function loadDeferredData({context}: LoaderFunctionArgs) {
   };
 }
 
-export const meta = ({data}: MetaArgs<typeof loader>) => {
+export const meta = ({ data }: MetaArgs<typeof loader>) => {
   return getSeoMeta(data!.seo as SeoConfig);
 };
 
-function Layout({children}: {children?: React.ReactNode}) {
+function Layout({ children }: { children?: React.ReactNode }) {
   const nonce = useNonce();
   const data = useRouteLoaderData<typeof loader>('root');
   const locale = data?.selectedLocale ?? DEFAULT_LOCALE;
@@ -150,11 +151,14 @@ function Layout({children}: {children?: React.ReactNode}) {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <meta name="msvalidate.01" content="A352E6A0AF9A652267361BBB572B8468" />
+         {/* Adobe Fonts link */}
+        <link rel="stylesheet" href="https://use.typekit.net/fzt1gqm.css" />
         <link rel="stylesheet" href={styles}></link>
+        <link rel="stylesheet" href={mainStyle}></link>
         <Meta />
         <Links />
       </head>
-      <body>
+        <body>
         {data ? (
           <Analytics.Provider
             cart={data.cart}
@@ -186,7 +190,7 @@ export default function App() {
   );
 }
 
-export function ErrorBoundary({error}: {error: Error}) {
+export function ErrorBoundary({ error }: { error: Error }) {
   const routeError = useRouteError();
   const isRouteError = isRouteErrorResponse(routeError);
 
@@ -206,7 +210,7 @@ export function ErrorBoundary({error}: {error: Error}) {
             <NotFound type={pageType} />
           ) : (
             <GenericError
-              error={{message: `${routeError.status} ${routeError.data}`}}
+              error={{ message: `${routeError.status} ${routeError.data}` }}
             />
           )}
         </>
@@ -218,62 +222,62 @@ export function ErrorBoundary({error}: {error: Error}) {
 }
 
 const LAYOUT_QUERY = `#graphql
-  query layout(
-    $language: LanguageCode
-    $headerMenuHandle: String!
-    $footerMenuHandle: String!
-  ) @inContext(language: $language) {
-    shop {
-      ...Shop
-    }
-    headerMenu: menu(handle: $headerMenuHandle) {
-      ...Menu
-    }
-    footerMenu: menu(handle: $footerMenuHandle) {
-      ...Menu
-    }
+        query layout(
+        $language: LanguageCode
+        $headerMenuHandle: String!
+        $footerMenuHandle: String!
+        ) @inContext(language: $language) {
+          shop {
+          ...Shop
+        }
+        headerMenu: menu(handle: $headerMenuHandle) {
+          ...Menu
+        }
+        footerMenu: menu(handle: $footerMenuHandle) {
+          ...Menu
+        }
   }
-  fragment Shop on Shop {
-    id
+        fragment Shop on Shop {
+          id
     name
-    description
-    primaryDomain {
-      url
-    }
-    brand {
-      logo {
-        image {
+        description
+        primaryDomain {
+          url
+        }
+        brand {
+          logo {
+          image {
           url
         }
       }
     }
   }
-  fragment MenuItem on MenuItem {
-    id
+        fragment MenuItem on MenuItem {
+          id
     resourceId
-    tags
-    title
-    type
-    url
+        tags
+        title
+        type
+        url
   }
-  fragment ChildMenuItem on MenuItem {
-    ...MenuItem
-  }
-  fragment ParentMenuItem on MenuItem {
-    ...MenuItem
+        fragment ChildMenuItem on MenuItem {
+          ...MenuItem
+        }
+        fragment ParentMenuItem on MenuItem {
+          ...MenuItem
     items {
-      ...ChildMenuItem
-    }
+          ...ChildMenuItem
+        }
   }
-  fragment Menu on Menu {
-    id
+        fragment Menu on Menu {
+          id
     items {
-      ...ParentMenuItem
-    }
+          ...ParentMenuItem
+        }
   }
-` as const;
+        ` as const;
 
-async function getLayoutData({storefront, env}: AppLoadContext) {
+async function getLayoutData({ storefront, env }: AppLoadContext) {
   const data = await storefront.query(LAYOUT_QUERY, {
     variables: {
       headerMenuHandle: 'main-menu',
@@ -292,25 +296,25 @@ async function getLayoutData({storefront, env}: AppLoadContext) {
       - /blog/news/blog-post -> /news/blog-post
       - /collections/all -> /products
   */
-  const customPrefixes = {BLOG: '', CATALOG: 'products'};
+  const customPrefixes = { BLOG: '', CATALOG: 'products' };
 
   const headerMenu = data?.headerMenu
     ? parseMenu(
-        data.headerMenu,
-        data.shop.primaryDomain.url,
-        env,
-        customPrefixes,
-      )
+      data.headerMenu,
+      data.shop.primaryDomain.url,
+      env,
+      customPrefixes,
+    )
     : undefined;
 
   const footerMenu = data?.footerMenu
     ? parseMenu(
-        data.footerMenu,
-        data.shop.primaryDomain.url,
-        env,
-        customPrefixes,
-      )
+      data.footerMenu,
+      data.shop.primaryDomain.url,
+      env,
+      customPrefixes,
+    )
     : undefined;
 
-  return {shop: data.shop, headerMenu, footerMenu};
+  return { shop: data.shop, headerMenu, footerMenu };
 }

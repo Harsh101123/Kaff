@@ -21,7 +21,7 @@ export default defineConfig({
   ],
   ssr: {
     optimizeDeps: {
-      include: ['typographic-base'],
+      include: ['react-slick', 'typographic-base'],
     },
   },
   optimizeDeps: {

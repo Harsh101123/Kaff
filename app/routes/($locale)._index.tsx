@@ -3,23 +3,24 @@ import {
   type MetaArgs,
   type LoaderFunctionArgs,
 } from '@shopify/remix-oxygen';
-import {Suspense} from 'react';
-import {Await, useLoaderData} from '@remix-run/react';
-import {getSeoMeta} from '@shopify/hydrogen';
+import { Suspense } from 'react';
+import { Await, useLoaderData } from '@remix-run/react';
+import { getSeoMeta } from '@shopify/hydrogen';
 
-import {Hero} from '~/components/Hero';
-import {FeaturedCollections} from '~/components/FeaturedCollections';
-import {ProductSwimlane} from '~/components/ProductSwimlane';
-import {MEDIA_FRAGMENT, PRODUCT_CARD_FRAGMENT} from '~/data/fragments';
-import {getHeroPlaceholder} from '~/lib/placeholders';
-import {seoPayload} from '~/lib/seo.server';
-import {routeHeaders} from '~/data/cache';
+
+// import { Hero } from '~/components/Hero';
+import { FeaturedCollections } from '~/components/FeaturedCollections';
+import { ProductSwimlane } from '~/components/ProductSwimlane';
+import { MEDIA_FRAGMENT, PRODUCT_CARD_FRAGMENT } from '~/data/fragments';
+import { getHeroPlaceholder } from '~/lib/placeholders';
+import { seoPayload } from '~/lib/seo.server';
+import { routeHeaders } from '~/data/cache';
 
 export const headers = routeHeaders;
 
 export async function loader(args: LoaderFunctionArgs) {
-  const {params, context} = args;
-  const {language, country} = context.storefront.i18n;
+  const { params, context } = args;
+  const { language, country } = context.storefront.i18n;
 
   if (
     params.locale &&
@@ -27,7 +28,7 @@ export async function loader(args: LoaderFunctionArgs) {
   ) {
     // If the locale URL param is defined, yet we still are on `EN-US`
     // the the locale param must be invalid, send to the 404 page
-    throw new Response(null, {status: 404});
+    throw new Response(null, { status: 404 });
   }
 
   // Start fetching non-critical data without blocking time to first byte
@@ -36,17 +37,17 @@ export async function loader(args: LoaderFunctionArgs) {
   // Await the critical data required to render initial state of the page
   const criticalData = await loadCriticalData(args);
 
-  return defer({...deferredData, ...criticalData});
+  return defer({ ...deferredData, ...criticalData });
 }
 
 /**
  * Load data necessary for rendering content above the fold. This is the critical data
  * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
  */
-async function loadCriticalData({context, request}: LoaderFunctionArgs) {
-  const [{shop, hero}] = await Promise.all([
+async function loadCriticalData({ context, request }: LoaderFunctionArgs) {
+  const [{ shop, hero }] = await Promise.all([
     context.storefront.query(HOMEPAGE_SEO_QUERY, {
-      variables: {handle: 'freestyle'},
+      variables: { handle: 'freestyle' },
     }),
     // Add other queries here, so that they are loaded in parallel
   ]);
@@ -54,7 +55,7 @@ async function loadCriticalData({context, request}: LoaderFunctionArgs) {
   return {
     shop,
     primaryHero: hero,
-    seo: seoPayload.home({url: request.url}),
+    seo: seoPayload.home({ url: request.url }),
   };
 }
 
@@ -63,8 +64,8 @@ async function loadCriticalData({context, request}: LoaderFunctionArgs) {
  * fetched after the initial page load. If it's unavailable, the page should still 200.
  * Make sure to not throw any errors here, as it will cause the page to 500.
  */
-function loadDeferredData({context}: LoaderFunctionArgs) {
-  const {language, country} = context.storefront.i18n;
+function loadDeferredData({ context }: LoaderFunctionArgs) {
+  const { language, country } = context.storefront.i18n;
 
   const featuredProducts = context.storefront
     .query(HOMEPAGE_FEATURED_PRODUCTS_QUERY, {
@@ -137,7 +138,7 @@ function loadDeferredData({context}: LoaderFunctionArgs) {
   };
 }
 
-export const meta = ({matches}: MetaArgs<typeof loader>) => {
+export const meta = ({ matches }: MetaArgs<typeof loader>) => {
   return getSeoMeta(...matches.map((match) => (match.data as any).seo));
 };
 
@@ -155,9 +156,10 @@ export default function Homepage() {
 
   return (
     <>
-      {primaryHero && (
+    
+      {/* {primaryHero && (
         <Hero {...primaryHero} height="full" top loading="eager" />
-      )}
+      )} */}
 
       {featuredProducts && (
         <Suspense>
@@ -182,7 +184,7 @@ export default function Homepage() {
         </Suspense>
       )}
 
-      {secondaryHero && (
+      {/* {secondaryHero && (
         <Suspense fallback={<Hero {...skeletons[1]} />}>
           <Await resolve={secondaryHero}>
             {(response) => {
@@ -193,7 +195,7 @@ export default function Homepage() {
             }}
           </Await>
         </Suspense>
-      )}
+      )} */}
 
       {featuredCollections && (
         <Suspense>
@@ -217,7 +219,7 @@ export default function Homepage() {
         </Suspense>
       )}
 
-      {tertiaryHero && (
+      {/* {tertiaryHero && (
         <Suspense fallback={<Hero {...skeletons[2]} />}>
           <Await resolve={tertiaryHero}>
             {(response) => {
@@ -228,7 +230,7 @@ export default function Homepage() {
             }}
           </Await>
         </Suspense>
-      )}
+      )} */}
     </>
   );
 }
