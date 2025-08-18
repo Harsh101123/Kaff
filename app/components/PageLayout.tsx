@@ -8,7 +8,7 @@ import { type LayoutQuery } from 'storefrontapi.generated';
 import MegaMenu from '~/components/global/MegaMenu';
 // import MainHeader from '~/components/global/Header';
 import FooterSection from '../components/global/FooterSection';
-// import Hero from '~/components/Hero';
+// import Hero from '../components/Hero';
 import HomeBanner from '~/components/HomeBanner';
 import NewLaunchesSlider from '../components/NewLaunchesSlider';
 import BestSelling from '../components/BestSelling';
@@ -56,7 +56,7 @@ export function PageLayout({ children, layout }: LayoutProps) {
     <>
       <MegaMenu />
       {/* <MainHeader /> */}
-      {/* <Hero /> */}
+      {/* <Hero />  */}
       <HomeBanner />
       <NewLaunchesSlider />
       <HomeProductCategories />
@@ -69,7 +69,7 @@ export function PageLayout({ children, layout }: LayoutProps) {
       <FooterSection />
 
       {/* Main content area */}
-      {/* <div className="">
+      <div className="">
           <a href="#mainContent" className="sr-only">
             Skip to content
           </a>
@@ -82,7 +82,7 @@ export function PageLayout({ children, layout }: LayoutProps) {
         <main role="main" id="mainContent" className="flex-grow">
           {children}
         </main>
-      {footerMenu && <Footer menu={footerMenu} />} */}
+      {footerMenu && <Footer menu={footerMenu} />}
     </>
   );
 }
