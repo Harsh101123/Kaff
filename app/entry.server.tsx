@@ -1,7 +1,8 @@
-import type {AppLoadContext, EntryContext} from '@remix-run/node';
-import {RemixServer} from '@remix-run/react';
-import {createContentSecurityPolicy} from '@shopify/hydrogen';
-import {renderToReadableStream} from 'react-dom/server';
+import type { AppLoadContext, EntryContext } from '@shopify/remix-oxygen';
+import { RemixServer } from '@remix-run/react';
+import isbot from 'isbot';
+import { renderToReadableStream } from 'react-dom/server';
+import { createContentSecurityPolicy } from '@shopify/hydrogen';
 
 export default async function handleRequest(
   request: Request,
@@ -10,46 +11,29 @@ export default async function handleRequest(
   remixContext: EntryContext,
   context: AppLoadContext,
 ) {
-  // Configure CSP
-  const {nonce, header, NonceProvider} = createContentSecurityPolicy({
-    defaultSrc: [
-      "'self'",
-      'https://cdn.shopify.com',
-      'https://shopify.com',
-    ],
+  const { nonce, header, NonceProvider } = createContentSecurityPolicy({
+    shop: {
+      checkoutDomain: context.env.PUBLIC_CHECKOUT_DOMAIN,
+      storeDomain: context.env.PUBLIC_STORE_DOMAIN,
+    },
     styleSrc: [
       "'self'",
       "'unsafe-inline'",
+      'https://use.typekit.net',
       'https://cdn.shopify.com',
-      'https://use.typekit.net', // Add typekit for fonts
-      'https://p.typekit.net',   // Add typekit for fonts
+      ...(process.env.NODE_ENV !== 'production' ? ['http://localhost:*'] : []),
     ],
+    // **Yeh naya fontSrc block add karo**
     fontSrc: [
       "'self'",
-      'https://cdn.shopify.com',
       'https://use.typekit.net',
-      'https://p.typekit.net',
-      'data:',
     ],
-    scriptSrc: [
-      "'self'",
-      "'unsafe-inline'",
-      "'unsafe-eval'",
-      `'nonce-${nonce}'`,
-      'https://cdn.shopify.com',
-      'https://shopify.com',
-    ],
-    imgSrc: [
-      "'self'",
-      'data:',
-      'https://cdn.shopify.com',
-      'https://shopify.com',
-    ],
-    connectSrc: [
-      "'self'",
-      'https://shopify.com',
-      'https://monorail-edge.shopifysvc.com',
-    ],
+    // Agar aapke pass scriptSrc directive hai, toh woh bhi iske baad aaegi
+    // Example:
+    // scriptSrc: [
+    //   "'self'",
+    //   'https://cdn.shopify.com',
+    // ],
   });
 
   const body = await renderToReadableStream(
@@ -59,21 +43,22 @@ export default async function handleRequest(
     {
       nonce,
       signal: request.signal,
-      onError(error: unknown) {
-        // Log streaming rendering errors from inside the shell
+      onError(error) {
+        // eslint-disable-next-line no-console
         console.error(error);
         responseStatusCode = 500;
       },
     },
   );
 
-  if (responseStatusCode === 200) {
-    responseHeaders.set('Content-Type', 'text/html');
-    responseHeaders.set('Content-Security-Policy', header);
+  if (isbot(request.headers.get('user-agent'))) {
+    await body.allReady;
   }
 
+  responseHeaders.set('Content-Type', 'text/html');
+  responseHeaders.set('Content-Security-Policy', header);
   return new Response(body, {
-    status: responseStatusCode,
     headers: responseHeaders,
+    status: responseStatusCode,
   });
 }
