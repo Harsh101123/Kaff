@@ -69,7 +69,7 @@ export function PageLayout({ children, layout }: LayoutProps) {
       <FooterSection />
 
       {/* Main content area */}
-      <div className="">
+      {/* <div className="">
           <a href="#mainContent" className="sr-only">
             Skip to content
           </a>
@@ -82,7 +82,7 @@ export function PageLayout({ children, layout }: LayoutProps) {
         <main role="main" id="mainContent" className="flex-grow">
           {children}
         </main>
-      {footerMenu && <Footer menu={footerMenu} />}
+      {footerMenu && <Footer menu={footerMenu} />} */}
     </>
   );
 }
