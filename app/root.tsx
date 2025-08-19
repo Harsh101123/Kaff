@@ -24,7 +24,6 @@ import {
   type SeoConfig,
 } from '@shopify/hydrogen';
 import invariant from 'tiny-invariant';
-import { useEffect, useState } from 'react';
 
 import { PageLayout } from '~/components/PageLayout';
 import { GenericError } from '~/components/GenericError';
@@ -141,27 +140,6 @@ export const meta = ({ data }: MetaArgs<typeof loader>) => {
   return getSeoMeta(data!.seo as SeoConfig);
 };
 
-// Client-only wrapper component for hydration issues
-function ClientOnly({ 
-  children, 
-  fallback = null 
-}: { 
-  children: React.ReactNode; 
-  fallback?: React.ReactNode; 
-}) {
-  const [hasMounted, setHasMounted] = useState(false);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
-  if (!hasMounted) {
-    return <>{fallback}</>;
-  }
-
-  return <>{children}</>;
-}
-
 function Layout({ children }: { children?: React.ReactNode }) {
   const nonce = useNonce();
   const data = useRouteLoaderData<typeof loader>('root');
@@ -173,33 +151,29 @@ function Layout({ children }: { children?: React.ReactNode }) {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <meta name="msvalidate.01" content="A352E6A0AF9A652267361BBB572B8468" />
-        {/* Adobe Fonts link */}
+         {/* Adobe Fonts link */}
         <link rel="stylesheet" href="https://use.typekit.net/fzt1gqm.css" />
         <link rel="stylesheet" href={styles}></link>
         <link rel="stylesheet" href={mainStyle}></link>
         <Meta />
         <Links />
       </head>
-      <body>
+        <body>
         {data ? (
           <Analytics.Provider
             cart={data.cart}
             shop={data.shop}
             consent={data.consent}
           >
-            <ClientOnly fallback={<div>Loading...</div>}>
-              <PageLayout
-                key={`${locale.language}-${locale.country}`}
-                layout={data.layout}
-              >
-                {children}
-              </PageLayout>
-            </ClientOnly>
+            <PageLayout
+              key={${locale.language}-${locale.country}}
+              layout={data.layout}
+            >
+              {children}
+            </PageLayout>
           </Analytics.Provider>
         ) : (
-          <div suppressHydrationWarning>
-            {children}
-          </div>
+          children
         )}
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
@@ -216,7 +190,7 @@ export default function App() {
   );
 }
 
-export function ErrorBoundary() {
+export function ErrorBoundary({ error }: { error: Error }) {
   const routeError = useRouteError();
   const isRouteError = isRouteErrorResponse(routeError);
 
@@ -236,74 +210,72 @@ export function ErrorBoundary() {
             <NotFound type={pageType} />
           ) : (
             <GenericError
-              error={{ message: `${routeError.status} ${routeError.data}` }}
+              error={{ message: ${routeError.status} ${routeError.data} }}
             />
           )}
         </>
       ) : (
-        <GenericError 
-          error={routeError instanceof Error ? routeError : undefined} 
-        />
+        <GenericError error={error instanceof Error ? error : undefined} />
       )}
     </Layout>
   );
 }
 
 const LAYOUT_QUERY = `#graphql
-  query layout(
-    $language: LanguageCode
-    $headerMenuHandle: String!
-    $footerMenuHandle: String!
-  ) @inContext(language: $language) {
-    shop {
-      ...Shop
-    }
-    headerMenu: menu(handle: $headerMenuHandle) {
-      ...Menu
-    }
-    footerMenu: menu(handle: $footerMenuHandle) {
-      ...Menu
-    }
+        query layout(
+        $language: LanguageCode
+        $headerMenuHandle: String!
+        $footerMenuHandle: String!
+        ) @inContext(language: $language) {
+          shop {
+          ...Shop
+        }
+        headerMenu: menu(handle: $headerMenuHandle) {
+          ...Menu
+        }
+        footerMenu: menu(handle: $footerMenuHandle) {
+          ...Menu
+        }
   }
-  fragment Shop on Shop {
-    id
+        fragment Shop on Shop {
+          id
     name
-    description
-    primaryDomain {
-      url
-    }
-    brand {
-      logo {
-        image {
+        description
+        primaryDomain {
+          url
+        }
+        brand {
+          logo {
+          image {
           url
         }
       }
     }
   }
-  fragment MenuItem on MenuItem {
-    id
+        fragment MenuItem on MenuItem {
+          id
     resourceId
-    tags
-    title
-    type
-    url
+        tags
+        title
+        type
+        url
   }
-  fragment ChildMenuItem on MenuItem {
-    ...MenuItem
-  }
-  fragment ParentMenuItem on MenuItem {
-    ...MenuItem
+        fragment ChildMenuItem on MenuItem {
+          ...MenuItem
+        }
+        fragment ParentMenuItem on MenuItem {
+          ...MenuItem
     items {
-      ...ChildMenuItem
-    }
+          ...ChildMenuItem
+        }
   }
-  fragment Menu on Menu {
-    id
+        fragment Menu on Menu {
+          id
     items {
-      ...ParentMenuItem
-    }
+          ...ParentMenuItem
+        }
   }
-` as const;
+        ` as const;
 
 async function getLayoutData({ storefront, env }: AppLoadContext) {
   const data = await storefront.query(LAYOUT_QUERY, {
@@ -328,20 +300,20 @@ async function getLayoutData({ storefront, env }: AppLoadContext) {
 
   const headerMenu = data?.headerMenu
     ? parseMenu(
-        data.headerMenu,
-        data.shop.primaryDomain.url,
-        env,
-        customPrefixes,
-      )
+      data.headerMenu,
+      data.shop.primaryDomain.url,
+      env,
+      customPrefixes,
+    )
     : undefined;
 
   const footerMenu = data?.footerMenu
     ? parseMenu(
-        data.footerMenu,
-        data.shop.primaryDomain.url,
-        env,
-        customPrefixes,
-      )
+      data.footerMenu,
+      data.shop.primaryDomain.url,
+      env,
+      customPrefixes,
+    )
     : undefined;
 
   return { shop: data.shop, headerMenu, footerMenu };
