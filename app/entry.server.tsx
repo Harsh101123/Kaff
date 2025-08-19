@@ -1,8 +1,7 @@
-import type { AppLoadContext, EntryContext } from '@shopify/remix-oxygen';
-import { RemixServer } from '@remix-run/react';
-import isbot from 'isbot';
-import { renderToReadableStream } from 'react-dom/server';
-import { createContentSecurityPolicy } from '@shopify/hydrogen';
+import type {AppLoadContext, EntryContext} from '@remix-run/node';
+import {RemixServer} from '@remix-run/react';
+import {createContentSecurityPolicy} from '@shopify/hydrogen';
+import {renderToReadableStream} from 'react-dom/server';
 
 export default async function handleRequest(
   request: Request,
@@ -11,29 +10,46 @@ export default async function handleRequest(
   remixContext: EntryContext,
   context: AppLoadContext,
 ) {
-  const { nonce, header, NonceProvider } = createContentSecurityPolicy({
-    shop: {
-      checkoutDomain: context.env.PUBLIC_CHECKOUT_DOMAIN,
-      storeDomain: context.env.PUBLIC_STORE_DOMAIN,
-    },
+  // Configure CSP
+  const {nonce, header, NonceProvider} = createContentSecurityPolicy({
+    defaultSrc: [
+      "'self'",
+      'https://cdn.shopify.com',
+      'https://shopify.com',
+    ],
     styleSrc: [
       "'self'",
       "'unsafe-inline'",
-      'https://use.typekit.net',
       'https://cdn.shopify.com',
-      ...(process.env.NODE_ENV !== 'production' ? ['http://localhost:*'] : []),
+      'https://use.typekit.net', // Add typekit for fonts
+      'https://p.typekit.net',   // Add typekit for fonts
     ],
-    // **Yeh naya fontSrc block add karo**
     fontSrc: [
       "'self'",
+      'https://cdn.shopify.com',
       'https://use.typekit.net',
+      'https://p.typekit.net',
+      'data:',
     ],
-    // Agar aapke pass scriptSrc directive hai, toh woh bhi iske baad aaegi
-    // Example:
-    // scriptSrc: [
-    //   "'self'",
-    //   'https://cdn.shopify.com',
-    // ],
+    scriptSrc: [
+      "'self'",
+      "'unsafe-inline'",
+      "'unsafe-eval'",
+      `'nonce-${nonce}'`,
+      'https://cdn.shopify.com',
+      'https://shopify.com',
+    ],
+    imgSrc: [
+      "'self'",
+      'data:',
+      'https://cdn.shopify.com',
+      'https://shopify.com',
+    ],
+    connectSrc: [
+      "'self'",
+      'https://shopify.com',
+      'https://monorail-edge.shopifysvc.com',
+    ],
   });
 
   const body = await renderToReadableStream(
@@ -43,22 +59,21 @@ export default async function handleRequest(
     {
       nonce,
       signal: request.signal,
-      onError(error) {
-        // eslint-disable-next-line no-console
+      onError(error: unknown) {
+        // Log streaming rendering errors from inside the shell
         console.error(error);
         responseStatusCode = 500;
       },
     },
   );
 
-  if (isbot(request.headers.get('user-agent'))) {
-    await body.allReady;
+  if (responseStatusCode === 200) {
+    responseHeaders.set('Content-Type', 'text/html');
+    responseHeaders.set('Content-Security-Policy', header);
   }
 
-  responseHeaders.set('Content-Type', 'text/html');
-  responseHeaders.set('Content-Security-Policy', header);
   return new Response(body, {
-    headers: responseHeaders,
     status: responseStatusCode,
+    headers: responseHeaders,
   });
 }
