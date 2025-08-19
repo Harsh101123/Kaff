@@ -5,7 +5,7 @@ function HomeBanner() {
   return (
     <>
       <div className="banner_sec">
-        <img src="/discover-your-perfect-brew.webp" alt="Kaff Banner" />
+        <img src="/chimney-banner.webp" alt="Kaff Banner" />
         <div className="container">
           <div className="banner_content">
             <h1>Reinvent Your Kitchen</h1>
