@@ -5,7 +5,7 @@ function HomeBanner() {
   return (
     <>
       <div className="banner_sec">
-        <img src="./kaff-banner.png" alt="Kaff Banner" />
+        <img src="/kaff-banner.png" alt="Kaff Banner" />
         <div className="container">
           <div className="banner_content">
             <h1>Reinvent Your Kitchen</h1>
