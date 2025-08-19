@@ -9,11 +9,14 @@ export default defineConfig({
     hydrogen(),
     oxygen(),
     remix({
-      // ✅ No presets needed - hydrogen() plugin handles this
       future: {
+        // Your existing flags
         v3_fetcherPersist: true,
         v3_relativeSplatPath: true,
         v3_throwAbortReason: true,
+        // Add these new flags to fix the React Router error
+        v3_lazyRouteDiscovery: true,
+        v3_singleFetch: true,
       },
     }),
     tsconfigPaths(),

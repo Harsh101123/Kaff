@@ -151,14 +151,14 @@ function Layout({ children }: { children?: React.ReactNode }) {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <meta name="msvalidate.01" content="A352E6A0AF9A652267361BBB572B8468" />
-         {/* Adobe Fonts link */}
+        {/* Adobe Fonts link */}
         <link rel="stylesheet" href="https://use.typekit.net/fzt1gqm.css" />
         <link rel="stylesheet" href={styles}></link>
         <link rel="stylesheet" href={mainStyle}></link>
         <Meta />
         <Links />
       </head>
-        <body>
+      <body>
         {data ? (
           <Analytics.Provider
             cart={data.cart}
@@ -166,7 +166,7 @@ function Layout({ children }: { children?: React.ReactNode }) {
             consent={data.consent}
           >
             <PageLayout
-              key={${locale.language}-${locale.country}}
+              key={`${locale.language}-${locale.country}`}  
               layout={data.layout}
             >
               {children}
@@ -210,7 +210,7 @@ export function ErrorBoundary({ error }: { error: Error }) {
             <NotFound type={pageType} />
           ) : (
             <GenericError
-              error={{ message: ${routeError.status} ${routeError.data} }}
+              error={{ message: `${routeError.status} ${routeError.data}` }}  
             />
           )}
         </>
